@@ -13,7 +13,7 @@ RUN CGO_ENABLED=1 make build GO_BUILD_PACKAGES="github.com/openshift/sdn/cmd/ope
 FROM registry.ci.openshift.org/ocp/4.14:cli AS cli
 FROM registry.ci.openshift.org/ocp/4.14:base
 
-ARG ovsver=2.13
+ARG ovsver=2.17
 
 RUN mkdir -p /opt/cni/bin/rhel9
 COPY --from=rhel9-builder /go/src/github.com/openshift/sdn/openshift-sdn-cni /opt/cni/bin/rhel9/openshift-sdn
