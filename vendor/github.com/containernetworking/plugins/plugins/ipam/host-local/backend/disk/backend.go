@@ -15,6 +15,7 @@
 package disk
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
@@ -98,20 +99,31 @@ func (s *Store) Release(ip net.IP) error {
 // N.B. This function eats errors to be tolerant and
 // release as much as possible
 func (s *Store) ReleaseByID(id string) error {
+	var found bool
 	err := filepath.Walk(s.dataDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
 			return nil
 		}
 		data, err := ioutil.ReadFile(path)
 		if err != nil {
-			return nil
+			return fmt.Errorf("failed to read file at path %s: %v", path, err)
 		}
 		if strings.TrimSpace(string(data)) == strings.TrimSpace(id) {
 			if err := os.Remove(path); err != nil {
-				return nil
+				return fmt.Errorf("failed to remove file %s: %v", path, err)
 			}
+			found = true
 		}
 		return nil
 	})
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to release ID %s: %v", id, err)
+	}
+	if !found {
+		return fmt.Errorf("expected to find file with ID %s but not found", id)
+	}
+	return nil
 }
